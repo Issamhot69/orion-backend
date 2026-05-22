@@ -7,11 +7,12 @@ import { AiModule } from './ai/ai.module';
 import { MemoryModule } from './memory/memory.module';
 import { CatalogueModule } from './catalogue/catalogue.module';
 import { CvModule } from './cv/cv.module';
+import { AuthModule } from './auth/auth.module';
 import { OrchestratorService } from './ai/orchestrator.service';
 import { DocumentAgent } from './agents/document.agent';
 
 @Module({
-  imports: [DocumentsModule, InvoicesModule, UsersModule, AiModule, MemoryModule, CatalogueModule, CvModule],
+  imports: [DocumentsModule, InvoicesModule, UsersModule, AiModule, MemoryModule, CatalogueModule, CvModule, AuthModule],
   controllers: [AppController],
   providers: [OrchestratorService, DocumentAgent],
 })
