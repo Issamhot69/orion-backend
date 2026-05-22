@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String     @id @default(cuid())
+  name      String
+  plan      String     @default("starter")
+  createdAt DateTime   @default(now())
+  documents Document[]
+  invoices  Invoice[]
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  filename    String
+  summary     String?
+  text        String?
+  companyId   String
+  createdAt   DateTime @default(now())
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  clientName  String
+  amount      Float
+  currency    String   @default("MAD")
+  date        String
+  description String?
+  status      String   @default("draft")
+  companyId   String
+  createdAt   DateTime @default(now())
+}
+
+model Memory {
+  id        String   @id @default(cuid())
+  companyId String
+  content   String
+  type      String
+  createdAt DateTime @default(now())
+}
