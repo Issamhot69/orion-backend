@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Pool } from 'pg';
 
@@ -6,48 +7,42 @@ export class DatabaseService implements OnModuleInit {
   private pool: Pool;
 
   constructor() {
-    this.pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const connectionString = process.env.DATABASE_URL;
+    console.log('DB URL:', connectionString ? connectionString.substring(0, 30) + '...' : 'NON DEFINIE');
+    this.pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
   }
 
   async onModuleInit() {
     try { await this.createTables(); console.log('Base de données ORION initialisée'); }
-    catch (e) { console.log('DB déjà initialisée — OK'); }
+    catch (e) { console.log('DB erreur:', e.message); }
   }
 
   async createTables() {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        name TEXT,
-        email TEXT UNIQUE,
-        password TEXT,
-        company TEXT,
-        company_id TEXT DEFAULT 'company-1',
-        created_at TIMESTAMP DEFAULT NOW()
+        name TEXT, email TEXT UNIQUE, password TEXT, company TEXT,
+        company_id TEXT DEFAULT 'company-1', created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS documents (
         id SERIAL PRIMARY KEY,
-        filename TEXT, summary TEXT, text TEXT,
-        invoice_data JSONB, company_id TEXT DEFAULT 'company-1',
-        created_at TIMESTAMP DEFAULT NOW()
+        filename TEXT, summary TEXT, text TEXT, invoice_data JSONB,
+        company_id TEXT DEFAULT 'company-1', created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS invoices (
         id SERIAL PRIMARY KEY,
         client_name TEXT, amount FLOAT, currency TEXT DEFAULT 'MAD',
         date TEXT, description TEXT, status TEXT DEFAULT 'draft',
-        pdf_path TEXT, company_id TEXT DEFAULT 'company-1',
-        created_at TIMESTAMP DEFAULT NOW()
+        pdf_path TEXT, company_id TEXT DEFAULT 'company-1', created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS memory (
         id SERIAL PRIMARY KEY,
-        company_id TEXT, content TEXT, type TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
+        company_id TEXT, content TEXT, type TEXT, created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS commands (
         id SERIAL PRIMARY KEY,
         command TEXT, response TEXT, lang TEXT, intent TEXT,
-        company_id TEXT DEFAULT 'company-1',
-        created_at TIMESTAMP DEFAULT NOW()
+        company_id TEXT DEFAULT 'company-1', created_at TIMESTAMP DEFAULT NOW()
       );
     `);
   }
@@ -94,24 +89,21 @@ export class DatabaseService implements OnModuleInit {
 
   async getDocuments(companyId: string) {
     const result = await this.pool.query(
-      `SELECT * FROM documents WHERE company_id = $1 ORDER BY created_at DESC LIMIT 20`,
-      [companyId]
+      `SELECT * FROM documents WHERE company_id = $1 ORDER BY created_at DESC LIMIT 20`, [companyId]
     );
     return result.rows;
   }
 
   async getInvoices(companyId: string) {
     const result = await this.pool.query(
-      `SELECT * FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT 20`,
-      [companyId]
+      `SELECT * FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT 20`, [companyId]
     );
     return result.rows;
   }
 
   async getCommands(companyId: string) {
     const result = await this.pool.query(
-      `SELECT * FROM commands WHERE company_id = $1 ORDER BY created_at DESC LIMIT 50`,
-      [companyId]
+      `SELECT * FROM commands WHERE company_id = $1 ORDER BY created_at DESC LIMIT 50`, [companyId]
     );
     return result.rows;
   }
