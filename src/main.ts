@@ -11,3 +11,4 @@ async function bootstrap() {
   console.log('API Key chargée:', process.env.GROQ_API_KEY ? 'OUI' : 'NON');
 }
 bootstrap();
+// Sat May 23 17:40:37 +01 2026
