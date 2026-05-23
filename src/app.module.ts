@@ -8,11 +8,12 @@ import { MemoryModule } from './memory/memory.module';
 import { CatalogueModule } from './catalogue/catalogue.module';
 import { CvModule } from './cv/cv.module';
 import { AuthModule } from './auth/auth.module';
+import { PresentationModule } from './presentations/presentation.module';
 import { OrchestratorService } from './ai/orchestrator.service';
 import { DocumentAgent } from './agents/document.agent';
 
 @Module({
-  imports: [DocumentsModule, InvoicesModule, UsersModule, AiModule, MemoryModule, CatalogueModule, CvModule, AuthModule],
+  imports: [DocumentsModule, InvoicesModule, UsersModule, AiModule, MemoryModule, CatalogueModule, CvModule, AuthModule, PresentationModule],
   controllers: [AppController],
   providers: [OrchestratorService, DocumentAgent],
 })
