@@ -4,21 +4,27 @@ import * as fs from 'fs';
 
 @Injectable()
 export class EmailService {
-  private resend: Resend;
+  private resend: Resend | null = null;
 
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+    const apiKey = process.env.RESEND_API_KEY;
+    if (apiKey && apiKey !== 're_123') {
+      this.resend = new Resend(apiKey);
+    } else {
+      console.log('Email service: RESEND_API_KEY not configured');
+    }
   }
 
   async sendDocument(to: string, subject: string, message: string, attachmentPath?: string) {
-    const attachments: any[] = [];
+    if (!this.resend) {
+      console.log('Email not sent — RESEND_API_KEY missing');
+      return { success: false, message: 'Email service not configured' };
+    }
 
+    const attachments: any[] = [];
     if (attachmentPath && fs.existsSync(attachmentPath)) {
       const fileContent = fs.readFileSync(attachmentPath);
-      attachments.push({
-        filename: attachmentPath.split('/').pop(),
-        content: fileContent,
-      });
+      attachments.push({ filename: attachmentPath.split('/').pop(), content: fileContent });
     }
 
     const result = await this.resend.emails.send({
@@ -35,7 +41,7 @@ export class EmailService {
             <p style="color:#333;font-size:15px;line-height:1.7;">${message}</p>
           </div>
           <div style="padding:16px;background:#1A1A2E;text-align:center;border-radius:0 0 12px 12px;">
-            <p style="color:#666;font-size:11px;margin:0;">Powered by ORION AI OS — Le premier OS d'entreprise mondial</p>
+            <p style="color:#666;font-size:11px;margin:0;">Powered by ORION AI OS</p>
           </div>
         </div>
       `,
@@ -46,29 +52,7 @@ export class EmailService {
   }
 
   async sendInvoice(to: string, clientName: string, amount: number, currency: string, pdfPath: string) {
-    return this.sendDocument(
-      to,
-      `Votre facture — ${amount} ${currency}`,
-      `Bonjour ${clientName},<br><br>Veuillez trouver ci-joint votre facture d'un montant de <strong>${amount} ${currency}</strong>.<br><br>Merci pour votre confiance.<br><br>Cordialement,<br><strong>ORION AI OS</strong>`,
-      pdfPath
-    );
-  }
-
-  async sendCV(to: string, name: string, pdfPath: string) {
-    return this.sendDocument(
-      to,
-      `CV de ${name} — ORION AI OS`,
-      `Bonjour,<br><br>Veuillez trouver ci-joint le CV de <strong>${name}</strong>.<br><br>Cordialement`,
-      pdfPath
-    );
-  }
-
-  async sendCatalogue(to: string, businessName: string, pdfPath: string) {
-    return this.sendDocument(
-      to,
-      `Catalogue ${businessName} — ORION AI OS`,
-      `Bonjour,<br><br>Veuillez trouver ci-joint le catalogue de <strong>${businessName}</strong>.<br><br>Cordialement`,
-      pdfPath
-    );
+    return this.sendDocument(to, `Invoice — ${amount} ${currency}`,
+      `Dear ${clientName},<br><br>Please find your invoice for <strong>${amount} ${currency}</strong>.<br><br>Best regards,<br><strong>ORION AI OS</strong>`, pdfPath);
   }
 }
